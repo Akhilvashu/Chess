@@ -1,85 +1,22 @@
-import { Chess } from 'chess.js';
-import Piece from 'components/Piece';
-import { SIZE, DEVICE_WIDTH } from 'constant';
-import Background from 'containers/Background/Background';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-    Dimensions,
-    StatusBar,
-    View,
-} from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import React from 'react';
+import 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import HomeScreen from './src/screens/HomeScreen';
+import Game from './src/screens/Game'; // Your existing game component
+import GameHistory from './src/screens/GameHistory'; // New GameHistory component
 
-
-function useConst<T>(initialValue: T | (() => T)): T {
-    const ref = useRef<{ value: T }>();
-    if (ref.current === undefined) {
-        ref.current = {
-            value:
-            typeof initialValue === "function"
-                ? (initialValue as Function)()
-                : initialValue,
-        };
-    }
-    return ref.current.value;
-}
-
+const Stack = createStackNavigator();
 
 function App(): JSX.Element {
-
-    const backgroundStyle = {
-        flex: 1,
-        backgroundColor: "#313131"
-    };
-
-
-    //initializing board height and width
-    const boardStyle = {
-        DEVICE_WIDTH,
-        height: DEVICE_WIDTH
-    }
-
-    //initializing chess engine
-    const chess = useMemo(() => new Chess(), []);
-    const [ state, setState ] = useState({
-        player: "w",
-        board: chess.board()
-    });
-
-    const onTurn = useCallback(()=>{
-        setState({
-            player: state.player === "w" ? "b": "w",
-            board: chess.board()
-        })
-    },[chess, state.player])
-
     return (
-        <GestureHandlerRootView style={{ ...backgroundStyle, justifyContent: "center" }}>
-            <StatusBar hidden/> 
-
-            <View style={boardStyle}>
-                <Background/>
-
-                {
-                    state.board.map((row, i) => (
-                        row.map((square, j) => {
-                            if(square === null){
-                                return null;
-                            } else {
-                                return <Piece 
-                                    chess={chess}
-                                    enabled={state.player === square.color}
-                                    onTurn={onTurn}
-                                    position={{ x: j*SIZE, y: i*SIZE }} 
-                                    key={`${i}${j}`} 
-                                    id={`${square.color}${square.type}` as const}/>
-                            }
-                        })
-                    ))
-                }
-            </View>   
-
-        </GestureHandlerRootView>
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName="Home">
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="Game" component={Game} />
+                <Stack.Screen name="GameHistory" component={GameHistory} />
+            </Stack.Navigator>
+        </NavigationContainer>
     );
 }
 
