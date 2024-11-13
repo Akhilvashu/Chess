@@ -1,61 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { Chess } from 'chess.js';
 import Chessboard from 'react-native-chessboard';
 
 const PGNAnalysisScreen: React.FC = () => {
     const [pgn, setPgn] = useState('');
-    const [position, setPosition] = useState('start');
+    const [position, setPosition] = useState('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
     const [moveIndex, setMoveIndex] = useState(0);
     const [moves, setMoves] = useState<string[]>([]);
-    // Remove initial Chess instance from useState
     const [game, setGame] = useState<Chess | null>(null);
 
-    // Initialize Chess in useEffect
     useEffect(() => {
         try {
             setGame(new Chess());
         } catch (error) {
             console.error('Error initializing chess:', error);
+            Alert.alert('Error', 'Failed to initialize chess engine');
         }
     }, []);
 
     const analyzePGN = () => {
-        if (!game) return;
-        
         try {
-            const newGame = new Chess();
-            newGame.loadPgn(pgn);
-            setGame(newGame);
-            const history = newGame.history();
+            if (!game) return;
+            game.loadPgn(pgn);
+            const history = game.history();
+            // Reset to initial position
+            game.reset();
             setMoves(history);
-            setMoveIndex(0);
-            setPosition(newGame.fen());
+            setMoveIndex(-1);
+            setPosition(game.fen());
+            Alert.alert('Success', `Loaded ${history.length} moves`);
         } catch (error) {
             console.error('Invalid PGN format:', error);
+            Alert.alert('Error', 'Invalid PGN format. Please check your input.');
         }
     };
-
     const navigateMove = (forward: boolean) => {
-        if (!game) return;
+        if (!moves.length) return;
 
-        try {
-            const newGame = new Chess();
-            newGame.loadPgn(pgn);
-            
-            const newIndex = forward 
-                ? Math.min(moveIndex + 1, moves.length - 1)
-                : Math.max(moveIndex - 1, 0);
-            
-            for (let i = 0; i <= newIndex; i++) {
-                newGame.move(moves[i]);
-            }
-            
-            setMoveIndex(newIndex);
-            setPosition(newGame.fen());
-        } catch (error) {
-            console.error('Error navigating move:', error);
+        const newIndex = forward 
+            ? moveIndex + 1
+            : moveIndex - 1;
+
+        // Check bounds
+        if (newIndex < -1 || newIndex >= moves.length) return;
+        // Reset game to starting position
+        if (!game) return;
+        game.reset();
+
+        // Play all moves up to the new index
+        for (let i = 0; i <= newIndex; i++) {
+            game.move(moves[i]);
         }
+
+        setMoveIndex(newIndex);
+        setPosition(game.fen());
     };
 
     return (
@@ -63,15 +62,21 @@ const PGNAnalysisScreen: React.FC = () => {
             <TextInput
                 style={styles.input}
                 multiline
-                placeholder="Paste PGN here..."
+                placeholder="Paste PGN here (e.g., 1. e4 e5 2. Nf3 Nc6...)"
                 value={pgn}
                 onChangeText={setPgn}
             />
             <Button 
                 title="Analyze PGN" 
                 onPress={analyzePGN}
-                disabled={!game} // Disable button if chess isn't initialized
+                disabled={!game}
             />
+            
+            {moves.length > 0 && (
+                <Text style={styles.moveInfo}>
+                    Move {moveIndex + 1} of {moves.length}
+                </Text>
+            )}
             
             <View style={styles.boardContainer}>
                 <View style={styles.board}>
@@ -85,12 +90,12 @@ const PGNAnalysisScreen: React.FC = () => {
                 <Button 
                     title="Previous" 
                     onPress={() => navigateMove(false)}
-                    disabled={moveIndex === 0 || !game}
+                    disabled={moveIndex === 0 || !game || moves.length === 0}
                 />
                 <Button 
                     title="Next" 
                     onPress={() => navigateMove(true)}
-                    disabled={moveIndex === moves.length - 1 || !game}
+                    disabled={moveIndex === moves.length - 1 || !game || moves.length === 0}
                 />
             </View>
         </View>
@@ -109,6 +114,7 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 16,
         height: 100,
+        color: '#000',
     },
     boardContainer: {
         aspectRatio: 1,
@@ -118,10 +124,18 @@ const styles = StyleSheet.create({
     board: {
         flex: 1,
     },
+    chessboard: {
+        flex: 1,
+    },
     controls: {
         flexDirection: 'row',
         justifyContent: 'space-around',
         marginTop: 16,
+    },
+    moveInfo: {
+        color: '#fff',
+        textAlign: 'center',
+        marginVertical: 10,
     },
 });
 
