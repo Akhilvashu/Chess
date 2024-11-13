@@ -61,16 +61,17 @@ const PGNAnalysisScreen: React.FC = () => {
             setMoveIndex(newIndex);
             setPosition(game.fen());
         };
+        
         const resetBoard = () => {
-            const newGame = new Chess();
+            const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+            const newGame = new Chess(initialPosition);  // Initialize with starting position
             
             // Reset everything to initial state
             setGame(newGame);
-            setPosition(newGame.fen());
+            setPosition(initialPosition);  // Use the initial position directly
             setMoveIndex(-1);
             setMoves([]);
             setPgn('');
-            
         };
         
    
@@ -103,7 +104,7 @@ const PGNAnalysisScreen: React.FC = () => {
                         key={position}  // Add this line to force re-render when position changes
                     />
                 </View>
-</View>     
+        </View>     
 
             <View style={styles.controls}>
             <Button 
