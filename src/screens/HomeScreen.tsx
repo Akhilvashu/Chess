@@ -5,14 +5,22 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Chess Game</Text>
-            <Button
-                title="Play"
-                onPress={() => navigation.navigate('Game')}
-            />
-            <Button
-                title="Game History"
-                onPress={() => navigation.navigate('GameHistory')}
-            />
+            <View style={styles.buttonContainer}>
+                <Button
+                    title="Play"
+                    onPress={() => navigation.navigate('Game')}
+                />
+                <View style={styles.buttonSpacing} />
+                <Button
+                    title="Game History"
+                    onPress={() => navigation.navigate('GameHistory')}
+                />
+                <View style={styles.buttonSpacing} />
+                <Button
+                    title="PGN Analysis"
+                    onPress={() => navigation.navigate('PGNAnalysis')}  
+                    />
+            </View>
         </View>
     );
 };
@@ -29,6 +37,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginBottom: 20,
     },
+    buttonContainer: {
+        width: '80%',  // Add this
+    },
+    buttonSpacing: {
+        height: 10,  // Add this
+    },
 });
-
-export default HomeScreen; 
+export default HomeScreen;  // Add this line if using default export
