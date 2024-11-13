@@ -19,43 +19,61 @@ const PGNAnalysisScreen: React.FC = () => {
         }
     }, []);
 
-    const analyzePGN = () => {
-        try {
+    
+        const analyzePGN = () => {
             if (!game) return;
-            game.loadPgn(pgn);
-            const history = game.history();
-            // Reset to initial position
+            try {
+                game.loadPgn(pgn);
+                const history = game.history();
+                
+                // Reset to initial position
+                game.reset();
+                setMoves(history);
+                setMoveIndex(-1);
+                setPosition(game.fen());
+                
+                Alert.alert('Success', `Loaded ${history.length} moves`);
+            } catch (error) {
+                console.error('Invalid PGN format:', error);
+                Alert.alert('Error', 'Invalid PGN format. Please check your input.');
+            }
+        };
+    
+        const navigateMove = (forward: boolean) => {
+            if (!moves.length) return;
+    
+            const newIndex = forward 
+                ? moveIndex + 1
+                : moveIndex - 1;
+    
+            // Check bounds
+            if (newIndex < -1 || newIndex >= moves.length) return;
+    
+            // Reset game to starting position
+            if (!game) return;
             game.reset();
-            setMoves(history);
-            setMoveIndex(-1);
+    
+            // Play all moves up to the new index
+            for (let i = 0; i <= newIndex; i++) {
+                game.move(moves[i]);
+            }
+    
+            setMoveIndex(newIndex);
             setPosition(game.fen());
-            Alert.alert('Success', `Loaded ${history.length} moves`);
-        } catch (error) {
-            console.error('Invalid PGN format:', error);
-            Alert.alert('Error', 'Invalid PGN format. Please check your input.');
-        }
-    };
-    const navigateMove = (forward: boolean) => {
-        if (!moves.length) return;
-
-        const newIndex = forward 
-            ? moveIndex + 1
-            : moveIndex - 1;
-
-        // Check bounds
-        if (newIndex < -1 || newIndex >= moves.length) return;
-        // Reset game to starting position
-        if (!game) return;
-        game.reset();
-
-        // Play all moves up to the new index
-        for (let i = 0; i <= newIndex; i++) {
-            game.move(moves[i]);
-        }
-
-        setMoveIndex(newIndex);
-        setPosition(game.fen());
-    };
+        };
+        const resetBoard = () => {
+            const newGame = new Chess();
+            
+            // Reset everything to initial state
+            setGame(newGame);
+            setPosition(newGame.fen());
+            setMoveIndex(-1);
+            setMoves([]);
+            setPgn('');
+            
+        };
+        
+   
 
     return (
         <View style={styles.container}>
@@ -79,24 +97,30 @@ const PGNAnalysisScreen: React.FC = () => {
             )}
             
             <View style={styles.boardContainer}>
-                <View style={styles.board}>
+                 <View style={styles.board}>
                     <Chessboard
                         fen={position}
+                        key={position}  // Add this line to force re-render when position changes
                     />
                 </View>
-            </View>
+</View>     
 
             <View style={styles.controls}>
-                <Button 
-                    title="Previous" 
-                    onPress={() => navigateMove(false)}
-                    disabled={moveIndex === 0 || !game || moves.length === 0}
-                />
-                <Button 
-                    title="Next" 
-                    onPress={() => navigateMove(true)}
-                    disabled={moveIndex === moves.length - 1 || !game || moves.length === 0}
-                />
+            <Button 
+            title="Previous" 
+            onPress={() => navigateMove(false)}
+            disabled={moveIndex <= -1}
+        />
+        <Button 
+            title="Reset"
+            onPress={resetBoard}
+            color="#ff6b6b"  // Optional: different color for reset
+        />
+        <Button 
+            title="Next" 
+            onPress={() => navigateMove(true)}
+            disabled={moveIndex >= moves.length - 1}
+        />
             </View>
         </View>
     );
