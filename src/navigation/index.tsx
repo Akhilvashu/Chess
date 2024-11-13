@@ -1,3 +1,4 @@
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen'; 
@@ -22,7 +23,10 @@ export default function Navigation() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Game" component={Game} />
         <Stack.Screen name="GameHistory" component={GameHistory} />
-        <Stack.Screen name="PGNAnalysis" component={PGNAnalysisScreen}
+        <Stack.Screen 
+          name="PGNAnalysis" 
+          component={PGNAnalysisScreen}
+          options={{ title: 'PGN Analysis' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

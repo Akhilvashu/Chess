@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/screens/HomeScreen';
 import Game from './src/screens/Game';
 import GameHistory from './src/screens/GameHistory';
-import PGNAnalysisScreen from './src/screens/PGNAnalysisScreen';  // Add this import
+import PGNAnalysisScreen from './src/screens/PGNAnalysisScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,7 +24,11 @@ function App(): JSX.Element {
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="Game" component={Game} />
                 <Stack.Screen name="GameHistory" component={GameHistory} />
-            
+                <Stack.Screen 
+                    name="PGNAnalysis" 
+                    component={PGNAnalysisScreen}
+                    options={{ title: 'PGN Analysis' }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );
