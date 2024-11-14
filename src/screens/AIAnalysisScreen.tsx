@@ -19,10 +19,12 @@ const AIAnalysisScreen: React.FC = () => {
         const initStockfish = async () => {
             const eventEmitter = new NativeEventEmitter(NativeModules.ReactNativeStockfishChessEngine);
             const listener = eventEmitter.addListener('stockfish-output', (line) => {
-                console.log("Stockfish output: " + line);
                 if (line.includes('bestmove')) {
-                    const bestMove = line.split(' ')[1];
-                    setAnalysis(`Next best move: ${bestMove}`);
+                    const parts = line.split(' ');
+                    const bestMove = parts[1];
+                    const ponderMove = parts[3] || 'none';
+                    console.log(`Best move: ${bestMove}, Ponder move: ${ponderMove}`);
+                    setAnalysis(`Next best move: ${formatMove(bestMove)}\nBest response move: ${formatMove(ponderMove)}`);
                     setIsAnalyzing(false);
                 }
             });
