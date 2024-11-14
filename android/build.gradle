@@ -7,6 +7,7 @@ buildscript {
         ndkVersion = "23.1.7779620"
         // Add these lines
         kotlinVersion = "1.8.0"
+        cmake_version = "3.22.1" 
     }
     repositories {
         google()

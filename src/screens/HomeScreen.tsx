@@ -21,7 +21,12 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     onPress={() => navigation.navigate('PGNAnalysis')}  
                     />
             </View>
-        </View>
+            <View style={styles.buttonSpacing} />
+                <Button
+                    title="AI Analysis"
+                    onPress={() => navigation.navigate('AIAnalysis')}  
+                />
+            </View>
     );
 };
 
