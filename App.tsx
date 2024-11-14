@@ -6,6 +6,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import Game from './src/screens/Game';
 import GameHistory from './src/screens/GameHistory';
 import PGNAnalysisScreen from './src/screens/PGNAnalysisScreen';
+import AIAnalysisScreen from './src/screens/AIAnalysisScreen';
 
 const Stack = createStackNavigator();
 
@@ -28,6 +29,11 @@ function App(): JSX.Element {
                     name="PGNAnalysis" 
                     component={PGNAnalysisScreen}
                     options={{ title: 'PGN Analysis' }}
+                />
+                <Stack.Screen 
+                    name="AIAnalysis" 
+                    component={AIAnalysisScreen}
+                    options={{ title: 'Stockfish Analysis' }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

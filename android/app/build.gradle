@@ -92,7 +92,11 @@ android {
     ndkVersion rootProject.ext.ndkVersion
 
     compileSdkVersion rootProject.ext.compileSdkVersion
-
+    externalNativeBuild {
+        cmake {
+            version cmake_version
+        }
+    }
     namespace "com.chess"
     defaultConfig {
         applicationId "com.chess"
@@ -118,6 +122,13 @@ android {
             keyPassword 'android'
         }
     }
+    android {
+    // ... other configs ...
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsi.so'
+    }
+}
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
