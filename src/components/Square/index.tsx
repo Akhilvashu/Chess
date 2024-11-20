@@ -15,7 +15,7 @@ const Square = ({ row, col }: SquareProps) => {
     
     //defining color for this particular 
     //square based on row and col
-    const backgroundColor = (row + col) % 2 === 0 ? WHITE: BLACK; 
+    const backgroundColor = (row + col) % 2 === 0 ? BLACK: WHITE; 
     const color = (row + col) % 2 !== 0 ? WHITE: BLACK; 
     
     return(
