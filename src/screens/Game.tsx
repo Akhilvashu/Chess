@@ -1,31 +1,21 @@
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { Chess } from 'chess.js';
 import Piece from 'components/Piece';
 import { SIZE, DEVICE_WIDTH } from 'constant';
 import Background from 'containers/Background/Background';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-    Dimensions,
     StatusBar,
     View,
+    Modal,
+    Text,
+    Button,
+    StyleSheet,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-
-function useConst<T>(initialValue: T | (() => T)): T {
-    const ref = useRef<{ value: T }>();
-    if (ref.current === undefined) {
-        ref.current = {
-            value:
-            typeof initialValue === "function"
-                ? (initialValue as Function)()
-                : initialValue,
-        };
-    }
-    return ref.current.value;
-}
-
-
-function App(): JSX.Element {
+function Game({ navigation }: { navigation: any }): JSX.Element {
 
     const backgroundStyle = {
         flex: 1,
@@ -46,12 +36,39 @@ function App(): JSX.Element {
         board: chess.board()
     });
 
-    const onTurn = useCallback(()=>{
-        setState({
-            player: state.player === "w" ? "b": "w",
+    // State for modal visibility and game result
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [gameResult, setGameResult] = useState("");
+
+    const checkGameOver = useCallback(() => {
+        if (chess.isGameOver()) {
+            const result = chess.isCheckmate() ? (state.player === "w" ? "White wins!" : "Black wins!") : "Draw!";
+            setGameResult(result);
+            setModalVisible(true);
+        }
+    }, [chess, state.player]);
+
+    const onTurn = useCallback(() => {
+        checkGameOver(); // Check for game over before changing turn
+        setState(prevState => ({
+            player: prevState.player === "w" ? "b" : "w",
             board: chess.board()
-        })
-    },[chess, state.player])
+        }));
+    }, [chess, checkGameOver]);
+
+    const handlePlayAgain = () => {
+        chess.reset(); // Reset the chess game
+        setState({
+            player: "w",
+            board: chess.board()
+        });
+        setModalVisible(false); // Close the modal
+    };
+
+    const handleGoHome = () => {
+        navigation.navigate('Home'); // Navigate to Home screen
+        setModalVisible(false); // Close the modal
+    };
 
     return (
         <GestureHandlerRootView style={{ ...backgroundStyle, justifyContent: "center" }}>
@@ -79,8 +96,34 @@ function App(): JSX.Element {
                 }
             </View>   
 
+            {/* Modal for Game Over */}
+            <Modal
+                transparent={true}
+                visible={isModalVisible}
+                animationType="slide"
+            >
+                <View style={styles.modalContainer}>
+                    <Text style={styles.modalText}>{gameResult}</Text>
+                    <Button title="Play Again" onPress={handlePlayAgain} />
+                    <Button title="Go to Home" onPress={handleGoHome} />
+                </View>
+            </Modal>
         </GestureHandlerRootView>
     );
 }
 
-export default App;
+const styles = StyleSheet.create({
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    },
+    modalText: {
+        fontSize: 24,
+        color: 'white',
+        marginBottom: 20,
+    },
+});
+
+export default Game;
