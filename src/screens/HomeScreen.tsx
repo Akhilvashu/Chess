@@ -8,7 +8,7 @@ const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             <View style={styles.buttonContainer}>
                 <Button
                     title="Play"
-                    onPress={() => navigation.navigate('Game')}
+                    onPress={() => navigation.navigate('GameMode')}
                 />
                 <View style={styles.buttonSpacing} />
                 <Button

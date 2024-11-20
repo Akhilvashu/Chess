@@ -1,5 +1,5 @@
 import { Chess } from 'chess.js';
-import Piece from 'components/Piece';
+import Piece from '../components/Piece';
 import { SIZE, DEVICE_WIDTH } from 'constant';
 import Background from 'containers/Background/Background';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -10,19 +10,6 @@ import {
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-
-function useConst<T>(initialValue: T | (() => T)): T {
-    const ref = useRef<{ value: T }>();
-    if (ref.current === undefined) {
-        ref.current = {
-            value:
-            typeof initialValue === "function"
-                ? (initialValue as Function)()
-                : initialValue,
-        };
-    }
-    return ref.current.value;
-}
 
 
 function App(): JSX.Element {
