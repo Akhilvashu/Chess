@@ -9,10 +9,11 @@ const ComputerGame: React.FC = () => {
     const [game, setGame] = useState<Chess | null>(null);
     const [position, setPosition] = useState(initialPosition);
     const [playerColor, setPlayerColor] = useState<'w' | 'b'>('w');
-    const [status, setStatus] = useState<string>('White to move');
+    const [status, setStatus] = useState<string>('Choose your color');
     const [moves, setMoves] = useState<string[]>([]);
     const [moveIndex, setMoveIndex] = useState(-1);
     const [key, setKey] = useState(0);
+    const [gameStarted, setGameStarted] = useState(false);
 
     useEffect(() => {
         try {
@@ -25,9 +26,17 @@ const ComputerGame: React.FC = () => {
         }
     }, [key]);
 
+    const selectColor = (color: 'w' | 'b') => {
+        setPlayerColor(color);
+        setGameStarted(true);
+        setStatus(color === 'w' ? 'White to move' : 'Black to move');
+    };
+
     const resetBoard = () => {
         try {
             setKey(prevKey => prevKey + 1);
+            setGameStarted(false);
+            setStatus('Choose your color');
         } catch (error) {
             console.error('Error resetting board:', error);
             Alert.alert('Error', 'Failed to reset the game');
@@ -65,6 +74,20 @@ const ComputerGame: React.FC = () => {
                         title="Reset Game"
                         onPress={resetBoard}
                         color="#ff6b6b"
+                    />
+                </View>
+
+                <View style={styles.colorSelection}>
+                    <Button 
+                        title="Play as White" 
+                        onPress={() => selectColor('w')}
+                        color="#fff"
+                    />
+                    <View style={styles.buttonSpacer} />
+                    <Button 
+                        title="Play as Black" 
+                        onPress={() => selectColor('b')}
+                        color="#000"
                     />
                 </View>
             </View>
@@ -122,9 +145,19 @@ const styles = StyleSheet.create({
     },
     status: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: 24,
         textAlign: 'center',
-        marginBottom: 10,
+        marginTop: 20,
+    },
+    colorSelection: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+        padding: 20,
+    },
+    buttonSpacer: {
+        width: 20,
     },
 });
 
