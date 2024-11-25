@@ -13,40 +13,133 @@ const PIECE_VALUES = {
     k: 20000
 };
 
+// Position bonus for controlling center and development
+const POSITION_BONUS = {
+    p: [
+        [0,  0,  0,  0,  0,  0,  0,  0],
+        [50, 50, 50, 50, 50, 50, 50, 50],
+        [10, 10, 20, 30, 30, 20, 10, 10],
+        [5,  5, 10, 25, 25, 10,  5,  5],
+        [0,  0,  0, 20, 20,  0,  0,  0],
+        [5, -5,-10,  0,  0,-10, -5,  5],
+        [5, 10, 10,-20,-20, 10, 10,  5],
+        [0,  0,  0,  0,  0,  0,  0,  0]
+    ],
+    n: [
+        [-50,-40,-30,-30,-30,-30,-40,-50],
+        [-40,-20,  0,  0,  0,  0,-20,-40],
+        [-30,  0, 10, 15, 15, 10,  0,-30],
+        [-30,  5, 15, 20, 20, 15,  5,-30],
+        [-30,  0, 15, 20, 20, 15,  0,-30],
+        [-30,  5, 10, 15, 15, 10,  5,-30],
+        [-40,-20,  0,  5,  5,  0,-20,-40],
+        [-50,-40,-30,-30,-30,-30,-40,-50]
+    ]
+};
+
 const evaluatePosition = (game: Chess): number => {
     let score = 0;
     const board = game.board();
     
+    // Material and position evaluation
     for(let i = 0; i < 8; i++) {
         for(let j = 0; j < 8; j++) {
             const piece = board[i][j];
             if(piece) {
+                // Base piece value
                 const value = PIECE_VALUES[piece.type];
-                score += piece.color === 'w' ? -value : value;
+                
+                // Add position bonus for pawns and knights
+                let positionBonus = 0;
+                if (piece.type === 'p' || piece.type === 'n') {
+                    const row = piece.color === 'w' ? i : 7 - i;
+                    positionBonus = POSITION_BONUS[piece.type][row][j];
+                }
+                
+                // White pieces add to score, Black pieces subtract
+                score += piece.color === 'w' ? 
+                    (value + positionBonus) : 
+                    -(value + positionBonus);
             }
         }
     }
+    
     return score;
-}
+};
+
+const alphaBeta = (
+    game: Chess, 
+    depth: number, 
+    alpha: number, 
+    beta: number, 
+    isMaximizing: boolean
+): number => {
+    if (depth === 0) {
+        return evaluatePosition(game);
+    }
+
+    const moves = game.moves({ verbose: true });
+    
+    if (moves.length === 0) {
+        if (game.isCheckmate()) {
+            return isMaximizing ? -Infinity : Infinity;
+        }
+        return 0; // Draw
+    }
+
+    if (isMaximizing) {
+        let maxEval = -Infinity;
+        for (const move of moves) {
+            game.move(move);
+            const evaluation = alphaBeta(game, depth - 1, alpha, beta, false);
+            game.undo();
+            
+            maxEval = Math.max(maxEval, evaluation);
+            alpha = Math.max(alpha, evaluation);
+            if (beta <= alpha) break;
+        }
+        return maxEval;
+    } else {
+        let minEval = Infinity;
+        for (const move of moves) {
+            game.move(move);
+            const evaluation = alphaBeta(game, depth - 1, alpha, beta, true);
+            game.undo();
+            
+            minEval = Math.min(minEval, evaluation);
+            beta = Math.min(beta, evaluation);
+            if (beta <= alpha) break;
+        }
+        return minEval;
+    }
+};
 
 const findBestMove = (game: Chess): any => {
+    console.log("Bot starting to think...");
     const moves = game.moves({ verbose: true });
-    let bestMove = moves[0];
-    let bestScore = -Infinity;
+    let bestMove = null;
+    let bestValue = Infinity;
+    
+    const searchDepth = 2;
     
     for (const move of moves) {
+        console.log(`Analyzing move: ${move.san}`);
         game.move(move);
-        const score = evaluatePosition(game);
+        const evaluation = alphaBeta(game, searchDepth, -Infinity, Infinity, true);
         game.undo();
         
-        if (score > bestScore) {
-            bestScore = score;
+        console.log(`Move ${move.san} evaluated to: ${evaluation}`);
+        
+        if (evaluation < bestValue) {
+            bestValue = evaluation;
             bestMove = move;
+            console.log(`New best move found: ${move.san}`);
         }
     }
     
-    return bestMove;
-}
+    console.log(`Bot chose move: ${bestMove?.san}`);
+    return bestMove || moves[0];
+};
 
 const ComputerGame: React.FC = () => {
     const initialPosition = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -85,11 +178,15 @@ const ComputerGame: React.FC = () => {
         if (!game || game.turn() === 'b') return;
         
         try {
-            // Sync our game state with the chessboard's state
             game.load(state.fen);
             setPosition(state.fen);
             
-            // Check if the game is over after player's move
+            // Log player's move
+            const lastMove = game.history({ verbose: true }).pop();
+            if (lastMove) {
+                console.log(`Player played: ${lastMove.san}, now bot's move...`);
+            }
+            
             if (game.isCheckmate()) {
                 setStatus('Checkmate! Player wins!');
                 return;
@@ -98,7 +195,6 @@ const ComputerGame: React.FC = () => {
                 return;
             }
 
-            // Only trigger bot move if game isn't over
             setStatus("Bot is thinking...");
             setTimeout(makeBotMove, 500);
         } catch (error) {
@@ -110,28 +206,34 @@ const ComputerGame: React.FC = () => {
         if (!game || game.turn() !== 'b') return;
 
         try {
-            const bestMove = findBestMove(game);
-            if (!bestMove) return;
+            setStatus("Bot is thinking... 🤔");
             
-            game.move(bestMove);
-            setPosition(game.fen());
-            
-            if (chessboardRef.current) {
-                chessboardRef.current.move({ 
-                    from: bestMove.from, 
-                    to: bestMove.to 
-                });
-            }
+            setTimeout(() => {
+                const bestMove = findBestMove(game);
+                if (!bestMove) return;
+                
+                game.move(bestMove);
+                setPosition(game.fen());
+                
+                if (chessboardRef.current) {
+                    chessboardRef.current.move({ 
+                        from: bestMove.from, 
+                        to: bestMove.to 
+                    });
+                }
 
-            if (game.isCheckmate()) {
-                setStatus('Checkmate! Bot wins!');
-            } else if (game.isDraw()) {
-                setStatus('Draw!');
-            } else {
-                setStatus('Your turn');
-            }
+                if (game.isCheckmate()) {
+                    setStatus('Checkmate! Bot wins! ♟️');
+                } else if (game.isDraw()) {
+                    setStatus('Draw! 🤝');
+                } else {
+                    setStatus('Your turn ⭐');
+                }
+            }, 100);
+            
         } catch (error) {
             console.error('Error making bot move:', error);
+            setStatus('Error occurred! 😕');
         }
     };
 
