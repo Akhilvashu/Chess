@@ -3,14 +3,14 @@ import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import { Chess } from 'chess.js';
 import Chessboard from 'react-native-chessboard';
 
-// Piece values and position weights
+// Standard chess piece values (more common scale)
 const PIECE_VALUES = {
-    p: 100,
-    n: 320,
-    b: 330,
-    r: 500,
-    q: 900,
-    k: 20000
+    p: 1,    // pawn
+    n: 3,    // knight
+    b: 3,    // bishop
+    r: 5,    // rook
+    q: 9,    // queen
+    k: 200   // king 
 };
 
 // Position bonus for controlling center and development
