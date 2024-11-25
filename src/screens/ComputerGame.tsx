@@ -146,7 +146,7 @@ const ComputerGame: React.FC = () => {
     
     const [game, setGame] = useState<Chess | null>(null);
     const [position, setPosition] = useState(initialPosition);
-    const [status, setStatus] = useState<string>('Your turn');
+    const [status, setStatus] = useState<string>('Your turn - make your move.');
     const [moves, setMoves] = useState<string[]>([]);
     const [moveIndex, setMoveIndex] = useState(-1);
     const [key, setKey] = useState(0);
@@ -157,7 +157,7 @@ const ComputerGame: React.FC = () => {
             const newGame = new Chess();
             setGame(newGame);
             setPosition(newGame.fen());
-            setStatus('Your turn');
+            setStatus('Your turn - make your move.');
         } catch (error) {
             console.error('Error initializing chess:', error);
             Alert.alert('Error', 'Failed to initialize chess engine');
@@ -167,7 +167,7 @@ const ComputerGame: React.FC = () => {
     const resetBoard = () => {
         try {
             setKey(prevKey => prevKey + 1);
-            setStatus('Your turn');
+            setStatus('Your turn - make your move.');
         } catch (error) {
             console.error('Error resetting board:', error);
             Alert.alert('Error', 'Failed to reset the game');
@@ -181,21 +181,17 @@ const ComputerGame: React.FC = () => {
             game.load(state.fen);
             setPosition(state.fen);
             
-            // Log player's move
-            const lastMove = game.history({ verbose: true }).pop();
-            if (lastMove) {
-                console.log(`Player played: ${lastMove.san}, now bot's move...`);
-            }
-            
+            // Check if the game is over after player's move
             if (game.isCheckmate()) {
-                setStatus('Checkmate! Player wins!');
+                setStatus('Game Over - Checkmate! Player wins.');
                 return;
             } else if (game.isDraw()) {
-                setStatus('Draw!');
+                setStatus('Game Over - Draw.');
                 return;
             }
 
-            setStatus("Bot is thinking...");
+            // Only after confirming it's a valid player move, trigger bot's turn
+            setStatus("Bot's turn - evaluating moves...");
             setTimeout(makeBotMove, 500);
         } catch (error) {
             console.error('Error making move:', error);
@@ -206,8 +202,7 @@ const ComputerGame: React.FC = () => {
         if (!game || game.turn() !== 'b') return;
 
         try {
-            setStatus("Bot is thinking... 🤔");
-            
+            // Bot is already thinking, no need to set status again here
             setTimeout(() => {
                 const bestMove = findBestMove(game);
                 if (!bestMove) return;
@@ -223,17 +218,17 @@ const ComputerGame: React.FC = () => {
                 }
 
                 if (game.isCheckmate()) {
-                    setStatus('Checkmate! Bot wins! ♟️');
+                    setStatus('Game Over - Checkmate! Bot wins.');
                 } else if (game.isDraw()) {
-                    setStatus('Draw! 🤝');
+                    setStatus('Game Over - Draw.');
                 } else {
-                    setStatus('Your turn ⭐');
+                    setStatus('Your turn - make your move.');
                 }
             }, 100);
             
         } catch (error) {
             console.error('Error making bot move:', error);
-            setStatus('Error occurred! 😕');
+            setStatus('Error occurred during move calculation.');
         }
     };
 
@@ -245,6 +240,8 @@ const ComputerGame: React.FC = () => {
                     <View style={[styles.colorIndicator, { backgroundColor: '#000' }]} />
                 </View>
             </View>
+
+            <Text style={styles.status}>{status}</Text>
 
             <View style={styles.boardContainer}>
                 <View style={styles.board}>
