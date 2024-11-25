@@ -3,7 +3,7 @@ import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import { Chess } from 'chess.js';
 import Chessboard from 'react-native-chessboard';
 
-// Standard chess piece values (more common scale)
+// chess piece values
 const PIECE_VALUES = {
     p: 1,    // pawn
     n: 3,    // knight
@@ -41,22 +41,22 @@ const evaluatePosition = (game: Chess): number => {
     let score = 0;
     const board = game.board();
     
-    // Material and position evaluation
+
     for(let i = 0; i < 8; i++) {
         for(let j = 0; j < 8; j++) {
             const piece = board[i][j];
             if(piece) {
-                // Base piece value
+                
                 const value = PIECE_VALUES[piece.type];
                 
-                // Add position bonus for pawns and knights
+                
                 let positionBonus = 0;
                 if (piece.type === 'p' || piece.type === 'n') {
                     const row = piece.color === 'w' ? i : 7 - i;
                     positionBonus = POSITION_BONUS[piece.type][row][j];
                 }
                 
-                // White pieces add to score, Black pieces subtract
+                
                 score += piece.color === 'w' ? 
                     (value + positionBonus) : 
                     -(value + positionBonus);
@@ -190,7 +190,7 @@ const ComputerGame: React.FC = () => {
                 return;
             }
 
-            // Only after confirming it's a valid player move, trigger bot's turn
+            
             setStatus("Bot's turn - evaluating moves...");
             setTimeout(makeBotMove, 500);
         } catch (error) {
@@ -202,7 +202,7 @@ const ComputerGame: React.FC = () => {
         if (!game || game.turn() !== 'b') return;
 
         try {
-            // Bot is already thinking, no need to set status again here
+            
             setTimeout(() => {
                 const bestMove = findBestMove(game);
                 if (!bestMove) return;
